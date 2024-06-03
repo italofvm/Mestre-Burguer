@@ -122,21 +122,73 @@ function removeItemCart(name) {
   }
 }
 
-addressInput.addEventListener("input", function(event){
+addressInput.addEventListener("input", function (event) {
   let inputValue = event.target.value
 
-  if(inputValue !== ""){
+  if (inputValue !== "") {
     addressInput.classList.remove("border-red-500")
     addressWarn.classList.add("hidden")
   }
 })
 
-checkoutBtn.addEventListener("click", function(){
-  if(cart.length === 0) return
-  if(addressInput.value === ""){
+// FINALIZAR PEDIDO
+checkoutBtn.addEventListener("click", function () {
+
+  const isOpen = checkRestaurantOpen()
+  if (!isOpen) {
+    Toastify({
+      text: "Ops o restaurante está fechado!",
+      duration: 3000,
+      destination: "https://github.com/apvarun/toastify-js",
+      newWindow: true,
+      close: true,
+      gravity: "top", // `top` or `bottom`
+      position: "center", // `left`, `center` or `right`
+      stopOnFocus: true, // Prevents dismissing of toast on hover
+      style: {
+        background: "#ef4444",
+      },
+    }).showToast();
+    return
+  }
+
+  if (cart.length === 0) return
+  if (addressInput.value === "") {
     addressWarn.classList.remove("hidden")
     addressInput.classList.add("border-red-500")
     return
   }
+
+  //ENVIAR O PEDIDO PARA API WHATS
+  const cartItems = cart.map((item) => {
+    return (
+      ` ${item.name} Quantidade: (${item.quantity}) Preço: R$${item.price.toFixed(2)} |`
+    )
+  }).join("")
+
+  const message = encodeURIComponent(cartItems)
+  const phone = "97988038255"
+
+  window.open(`https://wa.me/${phone}?text=${message} Endereço: ${addressInput.value}`, "_blank")
+
+  cart = []
+  updateCartModal()
 })
 
+function checkRestaurantOpen() {
+  const data = new Date()
+  const hora = data.getHours()
+  return hora >= 18 && hora < 22
+
+}
+
+const spanItem = document.querySelector("#date-span")
+const isOpen = checkRestaurantOpen()
+
+if (isOpen) {
+  spanItem.classList.remove("bg-red-500")
+  spanItem.classList.add("bg-green-600")
+} else {
+  spanItem.classList.add("bg-red-500")
+  spanItem.classList.remove("bg-green-600")
+}
